@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Под Ракитовый Кусток</title>
+    <meta name="description" content="Survival horror - переосмысление Красной Шапочки в карельских лесах">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #050808;
+            background-image: url('bg-game.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #FFFFFF;
+            font-family: 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-top: 10px;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: -1;
+        }
+        
+        #gameTitle {
+            font-size: 22px;
+            margin: 10px 0 3px 0;
+            color: #C41E3A;
+            text-shadow: 0 0 20px rgba(196, 30, 58, 0.6), 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 3px;
+            font-weight: normal;
+        }
+        
+        #subtitle {
+            font-size: 10px;
+            color: #6B8E6B;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 4px solid #1A2F1A;
+            box-shadow: 0 0 40px rgba(0, 30, 0, 0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 3px;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #0a1a0a;
+        }
+        
+        #ui {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 600px;
+            margin: 8px 0;
+            padding: 10px 15px;
+            background: linear-gradient(180deg, rgba(20, 35, 20, 0.9), rgba(10, 20, 10, 0.95));
+            border: 1px solid #2A4A2A;
+            border-radius: 3px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .uiElement {
+            font-size: 12px;
+            color: #A0C0A0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .uiElement span {
+            color: #D4AF37;
+            font-weight: bold;
+        }
+        
+        #levelIndicator {
+            color: #C41E3A;
+            font-weight: bold;
+        }
+        
+        #inventory {
+            display: flex;
+            gap: 10px;
+            padding: 8px 15px;
+            background: linear-gradient(180deg, rgba(30, 20, 20, 0.9), rgba(20, 15, 15, 0.95));
+            border: 1px solid #4A2A2A;
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+        
+        .invItem {
+            font-size: 11px;
+            color: #5A5A5A;
+            padding: 4px 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #3A3A3A;
+            border-radius: 3px;
+        }
+        
+        .invItem.active {
+            color: #D4AF37;
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        #controls {
+            text-align: center;
+            margin: 5px 0;
+            color: #4A6A4A;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        
+        /* Стартовый экран */
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 8, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .startButton {
+            background: linear-gradient(180deg, #3A4A3A, #2A3A2A);
+            color: #D4AF37;
+            border: 2px solid #4A5A4A;
+            padding: 18px 50px;
+            font-size: 18px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 3px;
+            border-radius: 5px;
+        }
+        
+        .startButton:hover {
+            background: linear-gradient(180deg, #4A5A4A, #3A4A3A);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+            border-color: #D4AF37;
+        }
+        
+        .hint {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #5A6A5A;
+        }
+        
+        /* Диалоговое окно */
+        #dialogueScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 8, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        
+        .dialogueBox {
+            max-width: 480px;
+            background: linear-gradient(180deg, rgba(20, 35, 20, 0.95), rgba(10, 20, 10, 0.98));
+            border: 2px solid #3A5A3A;
+            border-radius: 8px;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        .dialogueTitle {
+            font-size: 22px;
+            color: #C41E3A;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(196, 30, 58, 0.5);
+        }
+        
+        .dialogueText {
+            font-size: 14px;
+            color: #9AB09A;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .dialogueText em {
+            color: #D4AF37;
+            font-style: normal;
+        }
+        
+        .continueButton {
+            background: linear-gradient(180deg, #3A4A3A, #2A3A2A);
+            color: #D4AF37;
+            border: 2px solid #4A5A4A;
+            padding: 10px 35px;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+            border-radius: 5px;
+            margin-bottom: 60px;
+        }
+        
+        .continueButton:hover {
+            background: linear-gradient(180deg, #4A5A4A, #3A4A3A);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            border-color: #D4AF37;
+        }
+        
+        /* Экраны конца игры */
+        #gameOver, #victory {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        #gameOver {
+            background: linear-gradient(180deg, rgba(15, 10, 10, 0.98), rgba(5, 5, 5, 0.99));
+        }
+        
+        #victory {
+            background: linear-gradient(180deg, rgba(10, 15, 10, 0.98), rgba(5, 10, 5, 0.99));
+        }
+        
+        .endBox {
+            max-width: 420px;
+            padding: 35px 40px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        #gameOver .endBox {
+            border: 2px solid #8B0000;
+            box-shadow: 0 0 40px rgba(139, 0, 0, 0.4);
+            background: rgba(20, 10, 10, 0.9);
+        }
+        
+        #victory .endBox {
+            border: 2px solid #D4AF37;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.4);
+            background: rgba(15, 20, 15, 0.9);
+        }
+        
+        .endTitle {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+        
+        #gameOver .endTitle {
+            color: #C41E3A;
+            text-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+        }
+        
+        #victory .endTitle {
+            color: #D4AF37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .endMessage {
+            font-size: 13px;
+            color: #9A9A9A;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .restartButton {
+            background: linear-gradient(180deg, #3A4A3A, #2A3A2A);
+            color: #D4AF37;
+            border: 2px solid #4A5A4A;
+            padding: 10px 30px;
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+        }
+        
+        .restartButton:hover {
+            background: linear-gradient(180deg, #4A5A4A, #3A4A3A);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        /* Уведомление о предмете */
+        #itemNotification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, rgba(40, 50, 40, 0.98), rgba(20, 30, 20, 0.99));
+            border: 2px solid #D4AF37;
+            border-radius: 8px;
+            padding: 25px 35px;
+            text-align: center;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+        
+        #itemNotification h3 {
+            color: #D4AF37;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        #itemNotification p {
+            color: #9AB09A;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        
+        #itemNotification button {
+            background: linear-gradient(180deg, #4A5A4A, #3A4A3A);
+            color: #D4AF37;
+            border: 1px solid #5A6A5A;
+            padding: 8px 25px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        #audioControls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(15, 25, 15, 0.9);
+            padding: 6px;
+            border-radius: 3px;
+            border: 1px solid #2A4A2A;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        #homeBtn {
+            color: #8A9A8A;
+            text-decoration: none;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-right: 1px solid #2A4A2A;
+            margin-right: 4px;
+            transition: color 0.3s;
+        }
+        
+        #homeBtn:hover {
+            color: #D4AF37;
+        }
+        
+        #audioControls button {
+            background: linear-gradient(180deg, #2A3A2A, #1A2A1A);
+            color: #8A9A8A;
+            border: 1px solid #3A4A3A;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Georgia', serif;
+        }
+        
+        #audioControls button:hover {
+            background: linear-gradient(180deg, #3A4A3A, #2A3A2A);
+            color: #D4AF37;
+        }
+        
+        #joystickContainer {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 140px;
+            z-index: 900;
+        }
+        
+        #joystickContainer.hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px), (pointer: coarse) {
+            #joystickContainer {
+                display: block;
+                bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+            }
+            
+            #joystickContainer.hidden {
+                display: none !important;
+            }
+            
+            #gameContainer {
+                margin-bottom: 170px;
+            }
+            
+            #controls {
+                display: none;
+            }
+            
+            #ui {
+                width: 95%;
+                padding: 8px 12px;
+            }
+            
+            .uiElement {
+                font-size: 11px;
+            }
+            
+            #inventory {
+                width: 95%;
+                justify-content: center;
+                padding: 6px 10px;
+            }
+            
+            .invItem {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            
+            #gameCanvas {
+                max-width: 95vw;
+                max-height: 45vh;
+            }
+            
+            #gameContainer {
+                max-width: 95vw;
+            }
+            
+            #gameTitle {
+                font-size: 18px;
+                letter-spacing: 2px;
+            }
+            
+            #subtitle {
+                font-size: 9px;
+            }
+            
+            #audioControls {
+                top: calc(8px + env(safe-area-inset-top, 0px));
+                padding: 4px;
+            }
+            
+            #audioControls button {
+                padding: 3px 6px;
+                font-size: 9px;
+            }
+            
+            #homeBtn {
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+            
+            body {
+                padding-top: env(safe-area-inset-top, 0px);
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+            
+            .dialogueBox {
+                margin-bottom: 80px;
+                padding: 20px 25px;
+            }
+            
+            .dialogueTitle {
+                font-size: 18px;
+            }
+            
+            .dialogueText {
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #gameCanvas {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 40vh;
+            }
+            
+            #joystickContainer {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .joystick-base {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .joystick-stick {
+                width: 45px;
+                height: 45px;
+            }
+            
+            #ui {
+                justify-content: center;
+            }
+            
+            .uiElement {
+                font-size: 10px;
+            }
+        }
+
+        .joystick-base {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, rgba(20, 40, 20, 0.7), rgba(15, 30, 15, 0.9));
+            border: 2px solid #2A4A2A;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 30, 0, 0.5);
+        }
+
+        .joystick-stick {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            background: radial-gradient(circle, #D4AF37, #8B7530);
+            border: 2px solid #2A4A2A;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s;
+            touch-action: none;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
+        
+        #credits {
+            position: fixed;
+            bottom: 6px;
+            font-size: 10px;
+            color: #D4AF37;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            text-align: center;
+            padding: 0 10px;
+        }
+        
+        #credits span {
+            color: #8A9A8A;
+        }
+        
+        /* Финальная сцена */
+        #finalScene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 8, 0.98);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .finalBox {
+            max-width: 500px;
+            background: linear-gradient(180deg, rgba(25, 35, 25, 0.95), rgba(15, 20, 15, 0.98));
+            border: 2px solid #4A5A4A;
+            border-radius: 8px;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        .finalTitle {
+            font-size: 24px;
+            color: #C41E3A;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(196, 30, 58, 0.5);
+        }
+        
+        .finalText {
+            font-size: 14px;
+            color: #9AB09A;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        
+        .finalButtons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .finalBtn {
+            background: linear-gradient(180deg, #3A4A3A, #2A3A2A);
+            color: #D4AF37;
+            border: 2px solid #4A5A4A;
+            padding: 12px 25px;
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 5px;
+        }
+        
+        .finalBtn:hover {
+            background: linear-gradient(180deg, #4A5A4A, #3A4A3A);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .finalBtn.danger {
+            border-color: #8B4513;
+            color: #CD853F;
+        }
+        
+        .finalBtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="audioControls">
+        <a href="index.html" id="homeBtn">← Главная</a>
+        <button id="toggleMusic">♪ Музыка</button>
+        <button id="toggleSfx">♪ Звуки</button>
+    </div>
+    
+    <h1 id="gameTitle">ПОД РАКИТОВЫЙ КУСТОК</h1>
+    <div id="subtitle">survival horror</div>
+    
+    <div id="ui">
+        <div class="uiElement">❤️ Жизнь: <span id="lives">1</span></div>
+        <div class="uiElement">🔦 Фонарик: <span id="battery">100</span>%</div>
+        <div class="uiElement">👣 Следы: <span id="footprints">0</span>/5</div>
+        <div class="uiElement" id="levelIndicator">🌲 Смеркается</div>
+    </div>
+    
+    <div id="inventory">
+        <div class="invItem" id="invTrap">🪤 Капкан</div>
+        <div class="invItem" id="invGun">🔫 Ружьё</div>
+    </div>
+    
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        
+        <!-- Стартовый экран -->
+        <div id="startScreen">
+            <button class="startButton" onclick="startGame()">► НАЧАТЬ ИГРУ</button>
+            <div class="hint">Кликни или нажми Enter</div>
+        </div>
+        
+        <!-- Диалоговое окно -->
+        <div id="dialogueScreen">
+            <div class="dialogueBox">
+                <div class="dialogueTitle" id="dialogueTitle">Глава 1</div>
+                <div class="dialogueText" id="dialogueText">Текст...</div>
+                <button class="continueButton" onclick="continueGame()">Продолжить</button>
+            </div>
+        </div>
+        
+        <!-- Уведомление о предмете -->
+        <div id="itemNotification">
+            <h3 id="itemTitle">Предмет найден!</h3>
+            <p id="itemDesc">Описание предмета</p>
+            <button onclick="closeItemNotification()">Забрать</button>
+        </div>
+        
+        <!-- Финальная сцена -->
+        <div id="finalScene">
+            <div class="finalBox">
+                <div class="finalTitle">Раннее утро</div>
+                <div class="finalText" id="finalText">
+                    Ты вышла на поляну. Огромный волк стоит у старого дуба, 
+                    задрав морду вверх. На ветке, высоко над землёй, 
+                    прячется бабушка.<br><br>
+                    <em>Волк повернулся к тебе. Его глаза горят в рассветных сумерках.</em>
+                </div>
+                <div class="finalButtons">
+                    <button class="finalBtn" id="btnGun" onclick="useFinalItem('gun')" disabled>
+                        🔫 Выстрелить
+                    </button>
+                    <button class="finalBtn" id="btnTrap" onclick="useFinalItem('trap')" disabled>
+                        🪤 Поставить капкан
+                    </button>
+                    <button class="finalBtn danger" onclick="useFinalItem('nothing')">
+                        🚶 Подойти без оружия
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Конец игры -->
+        <div id="gameOver">
+            <div class="endBox">
+                <div class="endTitle">КОНЕЦ</div>
+                <div class="endMessage" id="deathMessage">Волк настиг тебя...</div>
+                <button class="restartButton" onclick="restartGame()">Попробовать снова</button>
+            </div>
+        </div>
+        
+        <!-- Победа -->
+        <div id="victory">
+            <div class="endBox">
+                <div class="endTitle">СПАСЕНИЕ!</div>
+                <div class="endMessage" id="victoryMessage">Ты спасла бабушку!</div>
+                <button class="restartButton" onclick="restartGame()">Играть снова</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="controls">WASD — движение • R — заново • Следуй за следами бабушки</div>
+    
+    <div id="joystickContainer" class="hidden">
+        <div class="joystick-base">
+            <div class="joystick-stick" id="joystickStick"></div>
+        </div>
+    </div>
+    
+    <div id="credits"><span>Команда:</span> Андрей Минеев, Ирина Акишина, Катя Прохорова, Нино Пачкория</div>
+    
+    <audio id="backgroundMusic" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const GRID_SIZE = 15;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
+        const LIGHT_RANGE = 3;
+        
+        let currentLevel = 1;
+        let gameStarted = false;
+        let animationFrame = 0;
+        let flickerTimer = 0;
+        let isFlickering = false;
+        
+        // Инвентарь
+        let inventory = {
+            trap: false,
+            gun: false
+        };
+        
+        // Названия уровней
+        const levelNames = {
+            1: "Смеркается",
+            2: "Полночь", 
+            3: "Раннее утро"
+        };
+        
+        // Диалоги для каждого уровня
+        const dialogues = {
+            1: {
+                title: "Глава 1: Смеркается",
+                text: "Ты пошла с бабушкой за грибами в карельский лес.<br>На мгновение отвлеклась — и бабушки рядом не стало.<br><br><em>Стемнело. Лес стал чужим.</em><br><br>Найди следы бабушки. Говорят, в этих лесах<br>охотники оставляют капканы..."
+            },
+            2: {
+                title: "Глава 2: Полночь",
+                text: "Следы ведут глубже в лес...<br>Батарейки в фонарике садятся — он начинает барахлить.<br><br><em>Волк всё ближе. Но где-то здесь должна быть<br>хижина охотника...</em><br><br>Ищи безопасные зоны и путь к хижине."
+            },
+            3: {
+                title: "Глава 3: Раннее утро",
+                text: "Рассвет близко. Ты почти у цели.<br>Впереди — поляна. Там ждёт волк.<br><br><em>А на дереве прячется бабушка.</em><br><br>Пора закончить это."
+            }
+        };
+        
+        // Карты уровней (1=стена, 0=проход, 2=выход, 3=сейф-зона, 4=хижина)
+        const levels = {
+            1: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
+                [1,0,1,0,1,0,1,1,1,0,1,0,1,0,1],
+                [1,0,1,0,0,0,0,0,1,0,0,0,1,0,1],
+                [1,0,1,1,1,1,1,0,1,1,1,0,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+                [1,1,1,0,1,1,1,1,1,1,1,0,1,0,1],
+                [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
+                [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,0,1,0,1,1,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+                [1,0,1,1,1,1,1,1,1,1,1,1,1,2,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            2: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,1,1,1,1,1,0,1],
+                [1,0,1,3,3,0,0,0,0,0,0,0,1,0,1],
+                [1,0,1,3,1,1,1,1,1,1,1,0,1,0,1],
+                [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
+                [1,1,1,0,1,0,1,1,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,1,4,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,1,1,1,0,1,1,1],
+                [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,0,1,1,1,0,1,1,1,1,1,0,1],
+                [1,3,3,0,0,0,0,0,1,0,0,0,0,0,1],
+                [1,3,1,1,1,1,1,0,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            3: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,1,0,0,0,1,0,0,0,0,0,1],
+                [1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
+                [1,0,1,0,0,0,1,0,0,0,0,0,1,0,1],
+                [1,0,1,1,1,0,1,1,1,1,1,0,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+                [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1],
+                [1,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,1,0,1,1,1,1,1,0,1,1,1,0,1],
+                [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,0,1,0,1,1,1,1,1,1,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+                [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ]
+        };
+        
+        // Предметы на уровнях
+        const levelItems = {
+            1: [{x: 9, y: 9, type: 'trap', name: 'Капкан', desc: 'Старый охотничий капкан. Может пригодиться...'}],
+            2: [{x: 7, y: 7, type: 'gun', name: 'Ружьё', desc: 'В хижине охотника нашлось заряженное ружьё!'}],
+            3: []
+        };
+        
+        // Следы для каждого уровня
+        const levelFootprints = {
+            1: [{x:2,y:3}, {x:5,y:5}, {x:7,y:7}, {x:9,y:9}, {x:11,y:11}],
+            2: [{x:3,y:2}, {x:5,y:4}, {x:7,y:6}, {x:9,y:8}, {x:11,y:10}],
+            3: [{x:2,y:2}, {x:4,y:4}, {x:6,y:6}, {x:8,y:8}, {x:11,y:11}]
+        };
+        
+        // Ловушки для каждого уровня
+        const levelTraps = {
+            1: [{x:7, y:9}, {x:11, y:5}],
+            2: [{x:9, y:9}],
+            3: [{x:5, y:5}, {x:9, y:9}]
+        };
+        
+        // Начальные позиции волка
+        const wolfStarts = {
+            1: {x: 11, y: 7},
+            2: {x: 10, y: 5},
+            3: {x: 9, y: 3}
+        };
+        
+        let maze = [];
+        let player = { x: 1, y: 1, facing: { x: 0, y: 1 } };
+        let wolf = { x: 11, y: 7, moveTimer: 0 };
+        let traps = [];
+        let footprints = [];
+        let items = [];
+        let exitPos = { x: 13, y: 12 };
+        
+        let gameState = {
+            alive: true,
+            won: false,
+            footprintsFound: 0,
+            totalFootprints: 5,
+            battery: 100
+        };
+        
+        // Аудио
+        let musicEnabled = true;
+        let sfxEnabled = true;
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        backgroundMusic.volume = 0.25;
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(frequency, duration, type = 'sine') {
+            if (!sfxEnabled) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        function playStepSound() {
+            playSound(80 + Math.random() * 40, 0.1, 'square');
+        }
+        
+        function playDeathSound() {
+            playSound(100, 0.3, 'sawtooth');
+            setTimeout(() => playSound(70, 0.3, 'sawtooth'), 100);
+            setTimeout(() => playSound(50, 0.5, 'sawtooth'), 200);
+        }
+        
+        function playWinSound() {
+            playSound(392, 0.15, 'sine');
+            setTimeout(() => playSound(523, 0.15, 'sine'), 150);
+            setTimeout(() => playSound(659, 0.15, 'sine'), 300);
+            setTimeout(() => playSound(784, 0.3, 'sine'), 450);
+        }
+        
+        function playWolfHowl() {
+            if (!sfxEnabled) return;
+            playSound(200, 0.4, 'sawtooth');
+            setTimeout(() => playSound(180, 0.3, 'sawtooth'), 200);
+            setTimeout(() => playSound(150, 0.5, 'sawtooth'), 400);
+        }
+        
+        function playFootprintSound() {
+            playSound(600, 0.1, 'sine');
+            setTimeout(() => playSound(800, 0.15, 'sine'), 100);
+        }
+        
+        function playItemSound() {
+            playSound(523, 0.1, 'sine');
+            setTimeout(() => playSound(659, 0.1, 'sine'), 100);
+            setTimeout(() => playSound(784, 0.2, 'sine'), 200);
+        }
+        
+        function playGunSound() {
+            playSound(100, 0.1, 'sawtooth');
+            playSound(60, 0.3, 'square');
+        }
+        
+        function startMusic() {
+            if (musicEnabled) {
+                backgroundMusic.play().catch(() => {});
+            }
+        }
+        
+        function updateInventoryUI() {
+            document.getElementById('invTrap').classList.toggle('active', inventory.trap);
+            document.getElementById('invGun').classList.toggle('active', inventory.gun);
+        }
+        
+        function loadLevel(levelNum) {
+            currentLevel = levelNum;
+            maze = JSON.parse(JSON.stringify(levels[levelNum]));
+            player = { x: 1, y: 1, facing: { x: 0, y: 1 } };
+            wolf = { ...wolfStarts[levelNum], moveTimer: 0 };
+            traps = levelTraps[levelNum].map(t => ({...t, triggered: false}));
+            footprints = levelFootprints[levelNum].map(f => ({...f, found: false}));
+            items = levelItems[levelNum].map(i => ({...i, collected: false}));
+            
+            // Найти выход на карте
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (maze[y][x] === 2) {
+                        exitPos = {x, y};
+                        maze[y][x] = 0;
+                    }
+                }
+            }
+            
+            gameState = {
+                alive: true,
+                won: false,
+                footprintsFound: 0,
+                totalFootprints: 5,
+                battery: currentLevel === 2 ? 70 : 100
+            };
+            
+            document.getElementById('levelIndicator').textContent = '🌲 ' + levelNames[levelNum];
+            updateUI();
+            updateInventoryUI();
+        }
+        
+        function isWall(x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return true;
+            return maze[y][x] === 1;
+        }
+        
+        function isSafeZone(x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
+            return maze[y][x] === 3;
+        }
+        
+        function isHut(x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
+            return maze[y][x] === 4;
+        }
+        
+        function updateUI() {
+            document.getElementById('battery').textContent = gameState.battery;
+            document.getElementById('footprints').textContent = gameState.footprintsFound;
+        }
+        
+        function showItemNotification(item) {
+            document.getElementById('itemTitle').textContent = item.name + ' найден!';
+            document.getElementById('itemDesc').textContent = item.desc;
+            document.getElementById('itemNotification').style.display = 'block';
+            playItemSound();
+        }
+        
+        function closeItemNotification() {
+            document.getElementById('itemNotification').style.display = 'none';
+        }
+        
+        function showFinalScene() {
+            document.getElementById('finalScene').style.display = 'flex';
+            document.getElementById('joystickContainer').classList.add('hidden');
+            
+            // Активируем кнопки в зависимости от инвентаря
+            document.getElementById('btnGun').disabled = !inventory.gun;
+            document.getElementById('btnTrap').disabled = !inventory.trap;
+            
+            // Обновляем текст
+            let text = 'Ты вышла на поляну. Огромный волк стоит у старого дуба, задрав морду вверх. На ветке, высоко над землёй, прячется бабушка.<br><br>';
+            text += '<em>Волк повернулся к тебе. Его глаза горят в рассветных сумерках.</em><br><br>';
+            
+            if (inventory.gun && inventory.trap) {
+                text += 'У тебя есть и ружьё, и капкан. Выбирай мудро.';
+            } else if (inventory.gun) {
+                text += 'Ты сжимаешь ружьё. Один выстрел — один шанс.';
+            } else if (inventory.trap) {
+                text += 'У тебя есть капкан. Нужно подманить волка...';
+            } else {
+                text += '<span style="color:#C41E3A">У тебя нет оружия. Это плохо...</span>';
+            }
+            
+            document.getElementById('finalText').innerHTML = text;
+        }
+        
+        function useFinalItem(choice) {
+            document.getElementById('finalScene').style.display = 'none';
+            
+            if (choice === 'gun' && inventory.gun) {
+                playGunSound();
+                document.getElementById('victoryMessage').innerHTML = 
+                    '🔫 Выстрел разорвал тишину леса!<br><br>' +
+                    'Волк упал. Бабушка спустилась с дерева.<br><br>' +
+                    '«Я знала, что ты справишься, внучка»<br><br>' +
+                    '<em>Вы вместе вышли из леса на рассвете.</em>';
+                document.getElementById('victory').style.display = 'flex';
+                playWinSound();
+                backgroundMusic.pause();
+                
+            } else if (choice === 'trap' && inventory.trap) {
+                document.getElementById('victoryMessage').innerHTML = 
+                    '🪤 Ты поставила капкан и отбежала в сторону.<br><br>' +
+                    'Волк бросился за тобой — и попал в ловушку!<br><br>' +
+                    'Бабушка спустилась с дерева.<br>' +
+                    '«Умница! Ты помнишь мои уроки»<br><br>' +
+                    '<em>Волк остался в капкане, а вы ушли домой.</em>';
+                document.getElementById('victory').style.display = 'flex';
+                playWinSound();
+                backgroundMusic.pause();
+                
+            } else {
+                // Без оружия — смерть
+                document.getElementById('deathMessage').innerHTML = 
+                    '🐺 Ты шагнула к волку с пустыми руками.<br><br>' +
+                    'Он не стал ждать.<br><br>' +
+                    '<em>Бабушка закричала с дерева,<br>но было уже поздно...</em>';
+                document.getElementById('gameOver').style.display = 'flex';
+                playDeathSound();
+                backgroundMusic.pause();
+            }
+        }
+        
+        function movePlayer(dx, dy) {
+            if (!gameState.alive || !gameStarted || gameState.won) return;
+            
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            
+            if (!isWall(newX, newY)) {
+                player.x = newX;
+                player.y = newY;
+                player.facing = { x: dx, y: dy };
+                
+                playStepSound();
+                
+                // Батарея
+                gameState.battery = Math.max(0, gameState.battery - 1);
+                updateUI();
+                
+                // Проверка предметов
+                items.forEach(item => {
+                    if (!item.collected && item.x === player.x && item.y === player.y) {
+                        item.collected = true;
+                        inventory[item.type] = true;
+                        updateInventoryUI();
+                        showItemNotification(item);
+                    }
+                });
+                
+                // Проверка следов
+                footprints.forEach(fp => {
+                    if (!fp.found && fp.x === player.x && fp.y === player.y) {
+                        fp.found = true;
+                        gameState.footprintsFound++;
+                        playFootprintSound();
+                        updateUI();
+                    }
+                });
+                
+                // Проверка ловушек
+                traps.forEach(trap => {
+                    if (!trap.triggered && trap.x === player.x && trap.y === player.y) {
+                        trap.triggered = true;
+                        gameState.alive = false;
+                        playDeathSound();
+                        backgroundMusic.pause();
+                        document.getElementById('deathMessage').textContent = 
+                            'Ты попала в ловушку браконьеров...';
+                        document.getElementById('gameOver').style.display = 'flex';
+                        document.getElementById('joystickContainer').classList.add('hidden');
+                    }
+                });
+                
+                // Проверка выхода
+                if (player.x === exitPos.x && player.y === exitPos.y) {
+                    if (currentLevel < 3) {
+                        currentLevel++;
+                        showDialogue(currentLevel);
+                    } else {
+                        // Финальная сцена
+                        showFinalScene();
+                    }
+                }
+                
+                // Движение волка
+                moveWolf();
+                
+                draw();
+            }
+        }
+        
+        function moveWolf() {
+            // Волк не двигается в сейф-зонах рядом с игроком
+            if (isSafeZone(player.x, player.y)) return;
+            
+            wolf.moveTimer++;
+            
+            // Скорость волка зависит от уровня
+            const wolfSpeed = 4 - currentLevel;
+            
+            if (wolf.moveTimer >= wolfSpeed) {
+                wolf.moveTimer = 0;
+                
+                const dx = player.x - wolf.x;
+                const dy = player.y - wolf.y;
+                
+                let moveX = 0, moveY = 0;
+                
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    moveX = dx > 0 ? 1 : -1;
+                } else {
+                    moveY = dy > 0 ? 1 : -1;
+                }
+                
+                // Волк не заходит в сейф-зоны
+                const nextX = wolf.x + moveX;
+                const nextY = wolf.y + moveY;
+                
+                if (!isWall(nextX, nextY) && !isSafeZone(nextX, nextY)) {
+                    wolf.x = nextX;
+                    wolf.y = nextY;
+                } else if (!isWall(wolf.x, wolf.y + (dy > 0 ? 1 : -1)) && 
+                           !isSafeZone(wolf.x, wolf.y + (dy > 0 ? 1 : -1))) {
+                    wolf.y += dy > 0 ? 1 : -1;
+                } else if (!isWall(wolf.x + (dx > 0 ? 1 : -1), wolf.y) &&
+                           !isSafeZone(wolf.x + (dx > 0 ? 1 : -1), wolf.y)) {
+                    wolf.x += dx > 0 ? 1 : -1;
+                }
+                
+                const dist = Math.abs(player.x - wolf.x) + Math.abs(player.y - wolf.y);
+                if (dist <= 4 && Math.random() < 0.3) {
+                    playWolfHowl();
+                }
+            }
+            
+            // Проверка столкновения
+            if (wolf.x === player.x && wolf.y === player.y) {
+                gameState.alive = false;
+                playDeathSound();
+                backgroundMusic.pause();
+                document.getElementById('deathMessage').textContent = 
+                    'Волк настиг тебя в чаще леса...';
+                document.getElementById('gameOver').style.display = 'flex';
+                document.getElementById('joystickContainer').classList.add('hidden');
+            }
+        }
+        
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+        
+        function drawTree(x, y, seed, lit) {
+            const cx = x * CELL_SIZE + CELL_SIZE / 2;
+            const cy = y * CELL_SIZE + CELL_SIZE / 2;
+            const size = CELL_SIZE * 0.4;
+            const variation = seededRandom(seed);
+            
+            if (lit) {
+                ctx.fillStyle = '#3D2817';
+                ctx.fillRect(cx - 3, cy, 6, size * 0.5);
+                
+                const green1 = `rgb(${30 + variation * 20}, ${60 + variation * 30}, ${30 + variation * 15})`;
+                const green2 = `rgb(${20 + variation * 15}, ${45 + variation * 25}, ${20 + variation * 10})`;
+                
+                ctx.fillStyle = green1;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - size * 0.8);
+                ctx.lineTo(cx - size * 0.6, cy + size * 0.1);
+                ctx.lineTo(cx + size * 0.6, cy + size * 0.1);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = green2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - size * 0.4);
+                ctx.lineTo(cx - size * 0.5, cy + size * 0.4);
+                ctx.lineTo(cx + size * 0.5, cy + size * 0.4);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                ctx.fillStyle = '#0A150A';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - size * 0.8);
+                ctx.lineTo(cx - size * 0.6, cy + size * 0.4);
+                ctx.lineTo(cx + size * 0.6, cy + size * 0.4);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+        
+        function drawSafeZone(x, y, lit) {
+            const px = x * CELL_SIZE;
+            const py = y * CELL_SIZE;
+            
+            if (lit) {
+                // Светлая зона с камнями/грибами
+                ctx.fillStyle = '#1E3E2E';
+                ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                
+                // Грибы светящиеся
+                ctx.fillStyle = '#4A9A6A';
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#3A8A5A';
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE * 0.7, py + CELL_SIZE * 0.5, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Индикатор безопасности
+                ctx.strokeStyle = 'rgba(100, 200, 150, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px + 2, py + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+            } else {
+                ctx.fillStyle = '#0A1A10';
+                ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+            }
+        }
+        
+        function drawHut(x, y, lit) {
+            const cx = x * CELL_SIZE + CELL_SIZE / 2;
+            const cy = y * CELL_SIZE + CELL_SIZE / 2;
+            const s = CELL_SIZE * 0.4;
+            
+            if (lit) {
+                // Стены
+                ctx.fillStyle = '#5D4037';
+                ctx.fillRect(cx - s * 0.6, cy - s * 0.2, s * 1.2, s * 0.8);
+                
+                // Крыша
+                ctx.fillStyle = '#3E2723';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - s * 0.7);
+                ctx.lineTo(cx - s * 0.8, cy - s * 0.2);
+                ctx.lineTo(cx + s * 0.8, cy - s * 0.2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Дверь
+                ctx.fillStyle = '#2D1B12';
+                ctx.fillRect(cx - s * 0.15, cy, s * 0.3, s * 0.5);
+                
+                // Окно со светом
+                ctx.fillStyle = '#FFCC66';
+                ctx.fillRect(cx + s * 0.2, cy - s * 0.1, s * 0.25, s * 0.25);
+            } else {
+                ctx.fillStyle = '#1A1008';
+                ctx.fillRect(cx - s * 0.6, cy - s * 0.2, s * 1.2, s * 0.8);
+            }
+        }
+        
+        function drawPlayer() {
+            const cx = player.x * CELL_SIZE + CELL_SIZE / 2;
+            const cy = player.y * CELL_SIZE + CELL_SIZE / 2;
+            const s = CELL_SIZE / 2.2;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + s * 0.5, s * 0.4, s * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const waveOffset = Math.sin(animationFrame * 0.1) * 2;
+            ctx.fillStyle = '#CC0000';
+            ctx.beginPath();
+            ctx.moveTo(cx - s * 0.5, cy - s * 0.3);
+            ctx.quadraticCurveTo(cx - s * 0.7 + waveOffset, cy + s * 0.3, cx - s * 0.4, cy + s * 0.6);
+            ctx.lineTo(cx + s * 0.4, cy + s * 0.6);
+            ctx.quadraticCurveTo(cx + s * 0.7 - waveOffset, cy + s * 0.3, cx + s * 0.5, cy - s * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#DD2222';
+            ctx.beginPath();
+            ctx.arc(cx, cy - s * 0.2, s * 0.5, Math.PI, 0, false);
+            ctx.fill();
+            
+            ctx.fillStyle = '#CC0000';
+            ctx.beginPath();
+            ctx.moveTo(cx - s * 0.45, cy - s * 0.2);
+            ctx.quadraticCurveTo(cx, cy - s * 0.9, cx + s * 0.45, cy - s * 0.2);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFDAB9';
+            ctx.beginPath();
+            ctx.arc(cx, cy - s * 0.15, s * 0.32, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#2F1810';
+            ctx.beginPath();
+            ctx.arc(cx - s * 0.12, cy - s * 0.22, s * 0.06, 0, Math.PI * 2);
+            ctx.arc(cx + s * 0.12, cy - s * 0.22, s * 0.06, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(cx - s * 0.1, cy - s * 0.24, s * 0.02, 0, Math.PI * 2);
+            ctx.arc(cx + s * 0.14, cy - s * 0.24, s * 0.02, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.ellipse(cx + s * 0.35, cy + s * 0.35, s * 0.2, s * 0.15, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Луч фонарика (мерцает на уровне 2)
+            if (!isFlickering) {
+                const fx = cx + player.facing.x * s * 0.6;
+                const fy = cy + player.facing.y * s * 0.6;
+                
+                const gradient = ctx.createRadialGradient(cx, cy, 0, fx, fy, s * 2);
+                gradient.addColorStop(0, 'rgba(255, 240, 150, 0.5)');
+                gradient.addColorStop(0.5, 'rgba(255, 220, 100, 0.3)');
+                gradient.addColorStop(1, 'rgba(255, 220, 100, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(fx, fy, s * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawWolf(x, y, lit) {
+            const cx = x * CELL_SIZE + CELL_SIZE / 2;
+            const cy = y * CELL_SIZE + CELL_SIZE / 2;
+            const s = CELL_SIZE / 2.2;
+            
+            if (lit) {
+                // Хвост
+                ctx.fillStyle = '#2A2A2A';
+                ctx.beginPath();
+                ctx.moveTo(cx - s * 0.5, cy + s * 0.2);
+                ctx.quadraticCurveTo(cx - s * 0.9, cy - s * 0.1, cx - s * 0.7, cy + s * 0.4);
+                ctx.quadraticCurveTo(cx - s * 0.5, cy + s * 0.5, cx - s * 0.4, cy + s * 0.3);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Лапы
+                ctx.fillStyle = '#2A2A2A';
+                ctx.beginPath();
+                ctx.ellipse(cx - s * 0.25, cy + s * 0.55, s * 0.12, s * 0.2, -0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.05, cy + s * 0.55, s * 0.12, s * 0.2, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.35, cy + s * 0.55, s * 0.1, s * 0.18, 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.55, cy + s * 0.5, s * 0.1, s * 0.18, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Тело
+                ctx.fillStyle = '#3A3A3A';
+                ctx.beginPath();
+                ctx.ellipse(cx, cy + s * 0.15, s * 0.6, s * 0.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Грудь
+                ctx.fillStyle = '#4A4A4A';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.25, cy + s * 0.2, s * 0.25, s * 0.3, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Шея
+                ctx.fillStyle = '#3A3A3A';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.35, cy - s * 0.1, s * 0.25, s * 0.3, 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Голова
+                ctx.fillStyle = '#4A4A4A';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.5, cy - s * 0.25, s * 0.35, s * 0.3, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Морда
+                ctx.fillStyle = '#3A3A3A';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.75, cy - s * 0.15, s * 0.2, s * 0.15, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Уши
+                ctx.fillStyle = '#3A3A3A';
+                ctx.beginPath();
+                ctx.moveTo(cx + s * 0.3, cy - s * 0.4);
+                ctx.lineTo(cx + s * 0.35, cy - s * 0.75);
+                ctx.lineTo(cx + s * 0.5, cy - s * 0.45);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(cx + s * 0.5, cy - s * 0.45);
+                ctx.lineTo(cx + s * 0.6, cy - s * 0.8);
+                ctx.lineTo(cx + s * 0.7, cy - s * 0.4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Глаза
+                ctx.fillStyle = '#FF6600';
+                ctx.shadowColor = '#FF4400';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.45, cy - s * 0.35, s * 0.1, s * 0.08, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.65, cy - s * 0.3, s * 0.1, s * 0.08, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Зрачки
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.47, cy - s * 0.35, s * 0.04, s * 0.05, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.67, cy - s * 0.3, s * 0.04, s * 0.05, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Нос
+                ctx.fillStyle = '#1A1A1A';
+                ctx.beginPath();
+                ctx.ellipse(cx + s * 0.88, cy - s * 0.12, s * 0.08, s * 0.06, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Клыки
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.moveTo(cx + s * 0.78, cy - s * 0.05);
+                ctx.lineTo(cx + s * 0.75, cy + s * 0.08);
+                ctx.lineTo(cx + s * 0.72, cy - s * 0.05);
+                ctx.closePath();
+                ctx.fill();
+                
+            } else {
+                // Только глаза в темноте
+                const dist = Math.abs(player.x - x) + Math.abs(player.y - y);
+                if (dist <= 6) {
+                    ctx.fillStyle = '#FF6600';
+                    ctx.shadowColor = '#FF4400';
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.arc(cx - s * 0.15, cy - s * 0.1, s * 0.15, 0, Math.PI * 2);
+                    ctx.arc(cx + s * 0.15, cy - s * 0.1, s * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+        
+        function isLit(x, y) {
+            if (isFlickering) return x === player.x && y === player.y;
+            if (x === player.x && y === player.y) return true;
+            for (let i = 1; i <= LIGHT_RANGE; i++) {
+                const checkX = player.x + player.facing.x * i;
+                const checkY = player.y + player.facing.y * i;
+                if (checkX === x && checkY === y) return true;
+                if (isWall(checkX, checkY)) break;
+            }
+            return false;
+        }
+        
+        function draw() {
+            animationFrame++;
+            
+            // Мерцание фонарика на уровне 2
+            if (currentLevel === 2) {
+                flickerTimer++;
+                if (flickerTimer > 60 && Math.random() < 0.05) {
+                    isFlickering = true;
+                    setTimeout(() => { isFlickering = false; }, 100 + Math.random() * 200);
+                    flickerTimer = 0;
+                }
+            } else {
+                isFlickering = false;
+            }
+            
+            ctx.fillStyle = '#050A08';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const lit = isLit(x, y);
+                    const px = x * CELL_SIZE;
+                    const py = y * CELL_SIZE;
+                    const cell = maze[y][x];
+                    
+                    if (cell === 1) {
+                        drawTree(x, y, x * 17 + y * 31, lit);
+                    } else if (cell === 3) {
+                        drawSafeZone(x, y, lit);
+                    } else if (cell === 4) {
+                        if (lit) {
+                            ctx.fillStyle = '#1E2E1E';
+                            ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                        } else {
+                            ctx.fillStyle = '#060C08';
+                            ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                        }
+                        drawHut(x, y, lit);
+                    } else {
+                        if (lit) {
+                            ctx.fillStyle = '#1E2E1E';
+                            ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                            
+                            const seed = x * 13 + y * 29;
+                            if (seededRandom(seed) > 0.6) {
+                                ctx.fillStyle = 'rgba(60, 90, 50, 0.3)';
+                                ctx.beginPath();
+                                ctx.arc(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7, CELL_SIZE * 0.1, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        } else {
+                            ctx.fillStyle = '#060C08';
+                            ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                        }
+                    }
+                }
+            }
+            
+            // Световой луч
+            if (!isFlickering) {
+                for (let i = 1; i <= LIGHT_RANGE; i++) {
+                    const lx = player.x + player.facing.x * i;
+                    const ly = player.y + player.facing.y * i;
+                    if (isWall(lx, ly)) break;
+                    
+                    const alpha = (1 - i / LIGHT_RANGE) * 0.35;
+                    const gradient = ctx.createRadialGradient(
+                        lx * CELL_SIZE + CELL_SIZE / 2, ly * CELL_SIZE + CELL_SIZE / 2, 0,
+                        lx * CELL_SIZE + CELL_SIZE / 2, ly * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE
+                    );
+                    gradient.addColorStop(0, `rgba(255, 228, 160, ${alpha})`);
+                    gradient.addColorStop(1, 'rgba(255, 228, 160, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(lx * CELL_SIZE, ly * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            }
+            
+            // Предметы
+            items.forEach(item => {
+                if (!item.collected && isLit(item.x, item.y)) {
+                    const ix = item.x * CELL_SIZE + CELL_SIZE / 2;
+                    const iy = item.y * CELL_SIZE + CELL_SIZE / 2;
+                    
+                    // Свечение
+                    ctx.fillStyle = 'rgba(212, 175, 55, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(ix, iy, CELL_SIZE * 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.font = '20px serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(item.type === 'trap' ? '🪤' : '🔫', ix, iy);
+                }
+            });
+            
+            // Следы
+            footprints.forEach(fp => {
+                if (!fp.found && isLit(fp.x, fp.y)) {
+                    const fx = fp.x * CELL_SIZE + CELL_SIZE / 2;
+                    const fy = fp.y * CELL_SIZE + CELL_SIZE / 2;
+                    ctx.fillStyle = 'rgba(139, 90, 43, 0.7)';
+                    ctx.beginPath();
+                    ctx.ellipse(fx - 5, fy, 4, 6, -0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(fx + 5, fy - 3, 4, 6, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Ловушки
+            traps.forEach(trap => {
+                if (!trap.triggered && isLit(trap.x, trap.y)) {
+                    const tx = trap.x * CELL_SIZE + CELL_SIZE / 2;
+                    const ty = trap.y * CELL_SIZE + CELL_SIZE / 2;
+                    
+                    // Ярко-желтый фон (как знак биохазарда/радиации)
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, CELL_SIZE * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Чёрная обводка для контраста
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, CELL_SIZE * 0.35, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Треугольники символа радиации (чёрные)
+                    ctx.fillStyle = '#000000';
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i * 120 + 90) * Math.PI / 180;
+                        ctx.beginPath();
+                        ctx.moveTo(tx, ty);
+                        ctx.lineTo(
+                            tx + Math.cos(angle - 0.3) * CELL_SIZE * 0.25,
+                            ty + Math.sin(angle - 0.3) * CELL_SIZE * 0.25
+                        );
+                        ctx.lineTo(
+                            tx + Math.cos(angle + 0.3) * CELL_SIZE * 0.25,
+                            ty + Math.sin(angle + 0.3) * CELL_SIZE * 0.25
+                        );
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    // Центральный круг
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, CELL_SIZE * 0.08, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Выход
+            if (isLit(exitPos.x, exitPos.y)) {
+                const ex = exitPos.x * CELL_SIZE + CELL_SIZE / 2;
+                const ey = exitPos.y * CELL_SIZE + CELL_SIZE / 2;
+                
+                const gradient = ctx.createRadialGradient(ex, ey, 0, ex, ey, CELL_SIZE);
+                gradient.addColorStop(0, 'rgba(255, 220, 150, 0.5)');
+                gradient.addColorStop(1, 'rgba(255, 220, 150, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(ex, ey, CELL_SIZE, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#D4AF37';
+                ctx.font = 'bold 20px Georgia';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('⛺', ex, ey);
+            }
+            
+            // Волк
+            drawWolf(wolf.x, wolf.y, isLit(wolf.x, wolf.y));
+            
+            // Игрок
+            drawPlayer();
+            
+            // Виньетка
+            const vignette = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
+                canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+            );
+            vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function showDialogue(level) {
+            const dialogue = dialogues[level];
+            document.getElementById('dialogueTitle').textContent = dialogue.title;
+            document.getElementById('dialogueText').innerHTML = dialogue.text;
+            document.getElementById('dialogueScreen').style.display = 'flex';
+            document.getElementById('joystickContainer').classList.add('hidden');
+        }
+        
+        function continueGame() {
+            document.getElementById('dialogueScreen').style.display = 'none';
+            document.getElementById('joystickContainer').classList.remove('hidden');
+            loadLevel(currentLevel);
+            draw();
+            gameLoop();
+        }
+        
+        function startGame() {
+            gameStarted = true;
+            document.getElementById('startScreen').style.display = 'none';
+            showDialogue(1);
+            startMusic();
+        }
+        
+        function gameLoop() {
+            if (gameStarted && gameState.alive && !gameState.won) {
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function restartGame() {
+            currentLevel = 1;
+            inventory = { trap: false, gun: false };
+            document.getElementById('lives').textContent = '1';
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('victory').style.display = 'none';
+            document.getElementById('finalScene').style.display = 'none';
+            
+            updateInventoryUI();
+            showDialogue(1);
+            startMusic();
+        }
+        
+        // Управление
+        document.addEventListener('keydown', (e) => {
+            if (!gameStarted && (e.key === 'Enter' || e.key === ' ')) {
+                startGame();
+                return;
+            }
+            
+            switch(e.key.toLowerCase()) {
+                case 'w': case 'ц': case 'arrowup':
+                    movePlayer(0, -1); break;
+                case 's': case 'ы': case 'arrowdown':
+                    movePlayer(0, 1); break;
+                case 'a': case 'ф': case 'arrowleft':
+                    movePlayer(-1, 0); break;
+                case 'd': case 'в': case 'arrowright':
+                    movePlayer(1, 0); break;
+                case 'r': case 'к':
+                    restartGame(); break;
+            }
+        });
+        
+        // Аудио
+        document.getElementById('toggleMusic').addEventListener('click', function() {
+            musicEnabled = !musicEnabled;
+            if (musicEnabled && gameStarted) {
+                backgroundMusic.play();
+                this.textContent = '♪ Музыка';
+            } else {
+                backgroundMusic.pause();
+                this.textContent = '♪ Выкл';
+            }
+        });
+        
+        document.getElementById('toggleSfx').addEventListener('click', function() {
+            sfxEnabled = !sfxEnabled;
+            this.textContent = sfxEnabled ? '♪ Звуки' : '♪ Выкл';
+        });
+        
+        let musicStarted = false;
+        document.addEventListener('click', () => {
+            if (!musicStarted && musicEnabled && gameStarted) {
+                startMusic();
+                musicStarted = true;
+            }
+        }, { once: false });
+
+        // Джойстик
+        const joystickStick = document.getElementById('joystickStick');
+        const joystickContainer = document.getElementById('joystickContainer');
+
+        let joystickActive = false;
+        let joystickCenterX = 0;
+        let joystickCenterY = 0;
+        let lastMoveTime = 0;
+
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            joystickActive = true;
+            const rect = joystickContainer.getBoundingClientRect();
+            joystickCenterX = rect.left + rect.width / 2;
+            joystickCenterY = rect.top + rect.height / 2;
+            
+            if (!gameStarted) startGame();
+        }
+
+        function handleJoystickMove(e) {
+            if (!joystickActive) return;
+            e.preventDefault();
+            
+            const touch = e.touches ? e.touches[0] : e;
+            const dx = touch.clientX - joystickCenterX;
+            const dy = touch.clientY - joystickCenterY;
+            
+            const distance = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+            const angle = Math.atan2(dy, dx);
+            
+            const stickX = Math.cos(angle) * distance;
+            const stickY = Math.sin(angle) * distance;
+            
+            joystickStick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+            
+            const now = Date.now();
+            if (distance > 20 && now - lastMoveTime > 150) {
+                lastMoveTime = now;
+                
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    movePlayer(dx > 0 ? 1 : -1, 0);
+                } else {
+                    movePlayer(0, dy > 0 ? 1 : -1);
+                }
+            }
+        }
+
+        function handleJoystickEnd(e) {
+            joystickActive = false;
+            joystickStick.style.transform = 'translate(-50%, -50%)';
+        }
+
+        joystickContainer.addEventListener('touchstart', handleJoystickStart, { passive: false });
+        joystickContainer.addEventListener('touchmove', handleJoystickMove, { passive: false });
+        joystickContainer.addEventListener('touchend', handleJoystickEnd);
+        joystickContainer.addEventListener('mousedown', handleJoystickStart);
+        document.addEventListener('mousemove', handleJoystickMove);
+        document.addEventListener('mouseup', handleJoystickEnd);
+        
+        // Инит
+        loadLevel(1);
+        draw();
+    </script>
+</body>
+</html>
